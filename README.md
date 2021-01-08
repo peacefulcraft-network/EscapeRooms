@@ -1,4 +1,4 @@
-# Bukkit-Plugin-Template
+# Escape Rooms
 Bukkit plugin for managing escape room style minigames autonomously.
 
 # Compiling
