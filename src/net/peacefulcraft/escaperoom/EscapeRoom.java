@@ -1,19 +1,19 @@
-package net.peacefulcraft.templateus;
+package net.peacefulcraft.escaperoom;
 
 import java.util.logging.Level;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.md_5.bungee.api.ChatColor;
-import net.peacefulcraft.templateus.commands.ExampleCommand;
-import net.peacefulcraft.templateus.config.Configuration;
-import net.peacefulcraft.templateus.listeners.PlayerJoinListener;
-public class Templateus extends JavaPlugin {
+import net.peacefulcraft.escaperoom.commands.ExampleCommand;
+import net.peacefulcraft.escaperoom.config.Configuration;
+import net.peacefulcraft.escaperoom.listeners.PlayerJoinListener;
+public class EscapeRoom extends JavaPlugin {
   
   public static final String messagingPrefix = ChatColor.GREEN + "[" + ChatColor.BLUE + "PCN" + ChatColor.GREEN + "]" + ChatColor.RESET;
 
-  private static Templateus _this;
-    public static Templateus _this() { return _this; }
+  private static EscapeRoom _this;
+    public static EscapeRoom _this() { return _this; }
 
   private static Configuration configuration;
     public static Configuration getConfiguration() { return configuration; }

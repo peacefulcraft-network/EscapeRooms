@@ -1,14 +1,14 @@
-package net.peacefulcraft.templateus.listeners;
+package net.peacefulcraft.escaperoom.listeners;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import net.peacefulcraft.templateus.Templateus;
+import net.peacefulcraft.escaperoom.EscapeRoom;
 
 public class PlayerJoinListener implements Listener {
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent ev) {
-    ev.getPlayer().sendMessage(Templateus.messagingPrefix + "Welcome to the server! -Templateus");
+    ev.getPlayer().sendMessage(EscapeRoom.messagingPrefix + "Welcome to the server! -Templateus");
   }
 }
