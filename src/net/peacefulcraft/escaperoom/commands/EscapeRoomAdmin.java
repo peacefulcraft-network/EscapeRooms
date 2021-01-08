@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 
 import net.peacefulcraft.escaperoom.EscapeRoom;
 
-public class ExampleCommand implements CommandExecutor {
+public class EscapeRoomAdmin implements CommandExecutor {
 
   /**
    * @param sender Entity which used the command.

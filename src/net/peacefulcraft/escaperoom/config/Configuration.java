@@ -1,40 +1,77 @@
 package net.peacefulcraft.escaperoom.config;
 
 import java.io.File;
-import java.net.URL;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import net.peacefulcraft.escaperoom.EscapeRoom;
 
-public class Configuration {
-  private FileConfiguration c;
+public abstract class Configuration {
 
-  public Configuration(FileConfiguration c) {
-    this.c = c;
+	private String resourceName;
+	protected String configName;
+		public String getConfigName() { return this.configName; }
 
-    /**
-     * Load the default plugin configration and use it's values as fallbacks if user-supplied configuration is incomplete.
-     * This will also copy the default values for any missing configuration directives into the user's configuration.
-     */
-    URL defaultConfigurationURI = getClass().getClassLoader().getResource("config.yml");
-    File defaultConfigurationFile = new File(defaultConfigurationURI.toString());
-    YamlConfiguration defaultConfiguration = YamlConfiguration.loadConfiguration(defaultConfigurationFile);
-    c.setDefaults(defaultConfiguration);
-    saveConfiguration();
-  }
+	protected File configFile;
+		public File getConfigFile() { return this.configFile; }
 
-  private boolean debugEnabled;
-    public void setDebugEnabled(boolean v) {
-      // Avoid blocking disk work if we can
-      if (v != debugEnabled) {
-        debugEnabled = v;
-        c.set("debug", v);
-        saveConfiguration();
-      }
-    }
-    public boolean isDebugEnabled() { return debugEnabled; }
+	protected FileConfiguration config;
 
-  public void saveConfiguration() { EscapeRoom._this().saveConfig(); }
+	public Configuration(String configName) {
+		this.configName = configName;
+		this.createDefaultConfiguration(true);
+		this.loadConfiguration();
+	}
+
+	public Configuration(String resourceName, String configName) {
+		this.resourceName = resourceName;
+		this.configName = configName;
+		this.createDefaultConfiguration(false);
+		this.loadConfiguration();
+	}
+
+	protected void createDefaultConfiguration(Boolean empty) {
+		try {
+			this.configFile = new File(EscapeRoom._this().getDataFolder(), this.configName);
+			if (!configFile.exists()) {
+				configFile.getParentFile().mkdirs();
+				if (empty) {
+					this.configFile.createNewFile();
+				} else {
+					InputStream in = getClass().getClassLoader().getResourceAsStream(this.resourceName);
+					OutputStream out = new FileOutputStream(this.configFile);
+					byte[] copyBuffer = new byte[1024];
+					int read;
+					while((read = in.read(copyBuffer)) > 0) {
+						out.write(copyBuffer, 0, read);
+					}
+					out.close();
+					in.close();
+				}
+			} else {
+				EscapeRoom._this().logNotice("Found existing file at " + this.configName + " - not creating a new one");
+			}
+		} catch (IOException e) {
+			EscapeRoom._this().logSevere("Error initializing config file " + this.configName);
+			e.printStackTrace();
+		}
+	}
+
+	protected void loadConfiguration() {
+		config = YamlConfiguration.loadConfiguration(new File(EscapeRoom._this().getDataFolder(), this.configName));
+	}
+
+	public void saveConfiguration() {
+		try {
+			this.config.save(this.configFile);
+		  } catch (IOException e) {
+			e.printStackTrace();
+			EscapeRoom._this().logSevere("Unable to save configuration file.");
+		  }
+	}
 }

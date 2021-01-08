@@ -3,7 +3,7 @@
 # https://bukkit.gamepedia.com/Plugin_YAML
 #
 name: EscapeRoom
-main: net.peacefulcraft.escamperoom.EscapeRoom
+main: net.peacefulcraft.escaperoom.EscapeRoom
 version: 0.0.1
 api-version: 1.16
 website: https://www.peacefulcraft.net/
