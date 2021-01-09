@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import net.peacefulcraft.escaperoom.EscapeRoom;
@@ -116,7 +117,7 @@ public class DeploymentPackage {
 					EscapeRoom._this().logDebug("File " + targetFile + " is a directory");
 				} else {
 					EscapeRoom._this().logDebug("File " + targetFile + " is a file");
-					ZipEntry ze = new ZipEntry(this.packagedZipFile.toPath().relativize(targetFile.toPath()).toString());
+					ZipEntry ze = new ZipEntry(this.packagedZipFile.getParentFile().toPath().relativize(targetFile.toPath()).toString());
 					zipStream.putNextEntry(ze);
 					
 					FileInputStream fis = new FileInputStream(targetFile);
@@ -136,8 +137,42 @@ public class DeploymentPackage {
 			}
 		}
 
-	public void unpack() {
-		
+	public void unpack() throws RuntimeException {
+		if (!this.packagedZipFile.exists()) {
+			throw new RuntimeException("Unable to unpack package " + this.getName() + ". Has the package been downloaded yet?");
+		}
+
+		try (
+			ZipInputStream zipStream = new ZipInputStream(new FileInputStream(this.packagedZipFile));
+		) {
+			// Clear old files
+			this.worldFolder.delete();
+			this.configFile.delete();
+			this.worldFolder.mkdir();
+			this.configFile.createNewFile();
+
+			ZipEntry zipEntry;
+			while((zipEntry = zipStream.getNextEntry()) != null) {
+				File newFile = new File(this.packagedZipFile.getParentFile(), zipEntry.getName());
+				if (zipEntry.isDirectory()) {
+					newFile.mkdirs();
+				} else {
+					try(
+						FileOutputStream fos = new FileOutputStream(newFile);
+					) {
+						byte[] in = new byte[8000];
+						int readIn;
+						while((readIn = zipStream.read(in, 0, 8000)) != -1) {
+							fos.write(in, 0, readIn);
+						}
+					}
+				}
+			}
+			
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			throw new RuntimeException("Error unpacking package " + this.name + ". See console for more details");
+		}
 	}
 
 	/**

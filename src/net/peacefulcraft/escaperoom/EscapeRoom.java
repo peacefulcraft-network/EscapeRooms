@@ -15,6 +15,7 @@ import net.peacefulcraft.escaperoom.config.ConfigurationManager;
 import net.peacefulcraft.escaperoom.config.EscapeRoomConfiguration;
 import net.peacefulcraft.escaperoom.config.MainConfiguration;
 import net.peacefulcraft.escaperoom.deploy.DeploymentManager;
+import net.peacefulcraft.escaperoom.deploy.DeploymentPackage;
 import net.peacefulcraft.escaperoom.deploy.DeploymentProvider;
 import net.peacefulcraft.escaperoom.deploy.ServerMode;
 import net.peacefulcraft.escaperoom.gamehandle.EscapeRoomWorld;
@@ -76,6 +77,8 @@ public class EscapeRoom extends JavaPlugin {
 		// Download updated versions of the worlds and place them, but don't load them. They're created ad-hoc.
 		this.deploymentManager.getDeploymentPackages().forEach((name, pack) -> {
 			this.deploymentManager.pullDeploymentPackage(name);
+			pack.unpack();
+			this.logNotice("Succesfully unpacked package " + name);
 		});
 	}
   }
