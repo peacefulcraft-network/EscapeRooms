@@ -1,5 +1,7 @@
 package net.peacefulcraft.escaperoom.commands;
 
+import java.util.List;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -7,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import net.md_5.bungee.api.ChatColor;
 import net.peacefulcraft.escaperoom.EscapeRoom;
+import net.peacefulcraft.escaperoom.config.EscapeRoomConfiguration;
 import net.peacefulcraft.escaperoom.gamehandle.EscapeRoomWorld;
 
 public class EscapeRoomAdminCommand implements CommandExecutor {
@@ -40,9 +43,25 @@ public class EscapeRoomAdminCommand implements CommandExecutor {
 
 		} else if (args[0].equalsIgnoreCase("load")) {
 
-		} else if (args[0].equalsIgnoreCase("deploy")) {
+		} else if (args[0].equalsIgnoreCase("push")) {
+			if (args.length < 2 || !this.isValidEscapeRoomName(args[1])) {
+				this.sendInvalidSuboptionMessage(sender, this.getEscapeRoomNames());
+				return true;
+			}
 
-		} else if (args[0].equalsIgnoreCase("fetch")) {
+			try {
+				EscapeRoom._this().shipEscapeRoomDeployment(args[1]);
+			} catch (RuntimeException ex) {
+				ex.printStackTrace();
+				EscapeRoom._this().logSevere("An error occured while attempting to drop ship an escape room. Target:" + args[1]);
+				sender.sendMessage(EscapeRoom.messagingPrefix + ChatColor.RED + "An error occured during the deployment proccess.");
+				sender.sendMessage(EscapeRoom.messagingPrefix + ex.getMessage());
+				sender.sendMessage(EscapeRoom.messagingPrefix + "The console should have more details.");
+			}
+
+			sender.sendMessage(EscapeRoom.messagingPrefix + ChatColor.GREEN + "Deployment reported no errors!");
+
+		} else if (args[0].equalsIgnoreCase("pull")) {
 
 		} else if (args[0].equalsIgnoreCase("goto")) {
 			if (!(sender instanceof Player)) {
@@ -87,5 +106,25 @@ public class EscapeRoomAdminCommand implements CommandExecutor {
 	}
 
 	return worldName.trim();
+  }
+
+  private Boolean isValidEscapeRoomName(String name) {
+	List<EscapeRoomConfiguration> escs = EscapeRoom._this().getEscapeRoomConfigurtions();
+	for (int i=0; i<escs.size(); i++) {
+		if (name.equalsIgnoreCase(escs.get(i).getName())) {
+			return true;
+		}
+	}
+
+	return false;
+  }
+
+  private String getEscapeRoomNames() {
+	String escapeRoomNames = "";
+	List<EscapeRoomConfiguration> escs = EscapeRoom._this().getEscapeRoomConfigurtions();
+	for (int i=0; i<escs.size(); i++) {
+		escapeRoomNames += escs.get(i).getName() + ", ";
+	}
+	return escapeRoomNames.substring(0, escapeRoomNames.length() -2);
   }
 }

@@ -31,6 +31,8 @@ public class EscapeRoom extends JavaPlugin {
 
 	private ConfigurationManager configManager;
 		public MainConfiguration getConfiguration() { return configManager.getPluginConfig(); }
+		public EscapeRoomConfiguration getEscapeRoomConfiguration(String name) { return this.configManager.getEscapeRoomConfig(name); }
+		public List<EscapeRoomConfiguration> getEscapeRoomConfigurtions() { return this.configManager.getConfiguredEscapeRooms(); }
 
 	private DeploymentManager deploymentManager;
 		public DeploymentManager getDeploymentManager() { return this.deploymentManager; }
@@ -94,6 +96,25 @@ public class EscapeRoom extends JavaPlugin {
 	public EscapeRoomWorld loadEscapeRoom(String name) {
 		EscapeRoomConfiguration newEscapeRoomConfig = this.configManager.createNewEscapeRoomConfiguration(name);
 		return this.worldManager.loadWorld(newEscapeRoomConfig);
+	}
+
+	/**
+	 * Packages and ships the requested EscapeRoom to the DeploymentNetwork for production usage
+	 * @param name The name of the EsapeRoom to package
+	 */
+	public void shipEscapeRoomDeployment(String name) throws RuntimeException {
+		EscapeRoomConfiguration targetConfig = this.configManager.getEscapeRoomConfig(name);
+		if (targetConfig == null) {
+			throw new RuntimeException("Unable to find coresponding configration file for EscapeRoom " + name + ". Is this the correct name?");
+		}
+
+		EscapeRoomWorld targetWorld = this.worldManager.getWorld(targetConfig.getName());
+		if (targetWorld != null) {
+			this.worldManager.unloadWorld(targetWorld);
+		}
+
+		this.deploymentManager.packageForDeployment(name);
+		this.deploymentManager.shipDeploymentPackage(name);
 	}
 
 	public void logDebug(String message) {

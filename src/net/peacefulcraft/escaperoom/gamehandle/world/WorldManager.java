@@ -44,7 +44,8 @@ public class WorldManager {
 
 	}
 
-	public void unloadWorld(EscapeRoomWorld world) {
-
+	public void unloadWorld(EscapeRoomWorld world) throws RuntimeException {
+		world.unloadWorld(); // can throw runtime exception
+		this.configuredWorlds.remove(world.getConfig().getName());
 	}
 }

@@ -18,6 +18,11 @@ public class ConfigurationManager {
 
 	private HashMap<String, EscapeRoomConfiguration> escapeRoomConfigs;
 		public EscapeRoomConfiguration getEscapeRoomConfig(String name) { return this.escapeRoomConfigs.get(name); }
+		public List<EscapeRoomConfiguration> getConfiguredEscapeRooms() {
+			List<EscapeRoomConfiguration> list = new ArrayList<EscapeRoomConfiguration>(this.escapeRoomConfigs.size());
+			list.addAll(this.escapeRoomConfigs.values());
+			return Collections.unmodifiableList(list);
+		}
 
 	public ConfigurationManager() {
 		this.pluginConfig = new MainConfiguration();
