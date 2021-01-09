@@ -2,6 +2,7 @@ package net.peacefulcraft.escaperoom.deploy;
 
 import java.io.IOException;
 
+import net.peacefulcraft.escaperoom.EscapeRoom;
 import net.peacefulcraft.escaperoom.config.DeploymentProviderConfiguration;
 
 public class DeploymentProvider {
@@ -16,13 +17,31 @@ public class DeploymentProvider {
 		this.config = config;
 	}
 
+	/**
+	 * Pulls the DeploymentManifest file from the deployment network
+	 * @return The DeploymentProviderConfiguration
+	 */
+	public DeploymentManifest pullDeploymentManifest() {
+		try {
+			this.pull(this.config.getDeploymentManifestUrl(), EscapeRoom._this().getDataFolder().toString() +  "/packages/manifest.yml");
+		} catch (RuntimeException ex) {
+			ex.printStackTrace();
+			EscapeRoom._this().logWarning("Error pulling deployment manifest from deployment network. Falling back to local copy. If this is a first time deployment this is expected.");
+		}
+
+		return new DeploymentManifest();
+	}
+
 	public void push(DeploymentPackage pack) throws RuntimeException{
 		try {
 			AuthenticatedHttpsMultipartForm mpf = new AuthenticatedHttpsMultipartForm(this.config.getDeploymentUploadUrl(),
 				this.config.getDeploymentUser(), this.config.getDeploymentPassword()
 			);
-
 			mpf.addFilePart("file", pack.getPackagedZipFile());
+			mpf.finish();
+
+			mpf = new AuthenticatedHttpsMultipartForm(this.config.getDeploymentUploadUrl(), this.config.getDeploymentUser(), this.config.getDeploymentPassword());
+			mpf.addFilePart("file", EscapeRoom._this().getDeploymentManager().getDeploymentManifest().getConfigFile());
 			mpf.finish();
 		} catch (IOException e) {
 			e.printStackTrace();

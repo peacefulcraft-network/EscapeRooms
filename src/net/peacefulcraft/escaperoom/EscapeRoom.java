@@ -60,8 +60,9 @@ public class EscapeRoom extends JavaPlugin {
 
 	this.worldManager = new WorldManager();
 
+	Collection<EscapeRoomConfiguration> configs = this.configManager.loadAllEscapeRoomConfigurations();
+	// In development, load all the worlds [set for dev loading]
 	if (this.getConfiguration().getServerMode() == ServerMode.DEVELOPMENT) {
-		Collection<EscapeRoomConfiguration> configs = this.configManager.loadAllEscapeRoomConfigurations();
 		for(EscapeRoomConfiguration config : configs) {
 			this.logNotice("Loaded config for EscapeRoom " + config.getName() + "...");
 			if (config.devLoadWorld()) {
@@ -72,7 +73,10 @@ public class EscapeRoom extends JavaPlugin {
 			}
 		}
 	} else {
-		// TODO: Deployment provider fetch configs and worlds
+		// Download updated versions of the worlds and place them, but don't load them. They're created ad-hoc.
+		this.deploymentManager.getDeploymentPackages().forEach((name, pack) -> {
+			this.deploymentManager.pullDeploymentPackage(name);
+		});
 	}
   }
 

@@ -38,10 +38,19 @@ public class DeploymentPackage {
 
 	public DeploymentPackage(String name) {
 		this.name = name;
+		this.isCanonical = false;
+		this.isVolitile = false;
 		this.configFile = new File(EscapeRoom._this().getDataFolder(), "/escaperooms/" + name + ".yml");
 		this.worldFolder = new File(EscapeRoom._this().getDataFolder().getParentFile().getParentFile(),
 				name.replaceAll(" ", "_"));
 		this.packagedZipFile = new File(EscapeRoom._this().getDataFolder(), "/packages/" + name + ".zip");
+	}
+
+	public DeploymentPackage(String name, String packageHash) {
+		this(name);
+		this.packageHash = packageHash;
+		this.isVolitile = false;
+		this.isCanonical = true;
 	}
 
 	/**
@@ -127,16 +136,20 @@ public class DeploymentPackage {
 			}
 		}
 
-		/**
-		 * Converts an MD5 MessageDigest to a human-readable hex string
-		 * Credit https://stackoverflow.com/a/11665457
-		 */
-		public static String MD5DigestToHexString(MessageDigest digest) {
-			byte[] byteData = digest.digest();
-			StringBuffer sb = new StringBuffer();
-    		for (int i = 0; i < byteData.length; i++)
-			sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+	public void unpack() {
 		
-			return sb.toString();
-		}
+	}
+
+	/**
+	 * Converts an MD5 MessageDigest to a human-readable hex string
+	 * Credit https://stackoverflow.com/a/11665457
+	 */
+	public static String MD5DigestToHexString(MessageDigest digest) {
+		byte[] byteData = digest.digest();
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < byteData.length; i++)
+		sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+	
+		return sb.toString();
+	}
 }

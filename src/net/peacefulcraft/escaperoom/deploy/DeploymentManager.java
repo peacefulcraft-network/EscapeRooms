@@ -1,14 +1,13 @@
 package net.peacefulcraft.escaperoom.deploy;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import net.peacefulcraft.escaperoom.EscapeRoom;
 
 public class DeploymentManager {
 
-	private HashMap<String, DeploymentPackage> deploymentPackages;
+	private Map<String, DeploymentPackage> deploymentPackages;
 		public DeploymentPackage getDeploymentPackage(String name) { return this.deploymentPackages.get(name); }
 		public Map<String, DeploymentPackage> getDeploymentPackages() { return Collections.unmodifiableMap(this.deploymentPackages); }
 
@@ -20,7 +19,16 @@ public class DeploymentManager {
 
 	public DeploymentManager(DeploymentProvider deploymentProvider) {
 		this.deploymentProvider = deploymentProvider;
-		this.deploymentPackages = new HashMap<String, DeploymentPackage>();
+
+		if (EscapeRoom._this().getConfiguration().getServerMode() == ServerMode.PRODUCTION) {
+			// Only pull the manifest if this server is in production.
+			this.deploymentManifest = this.deploymentProvider.pullDeploymentManifest();
+		} else {
+			// Otherwise we want to use our local version incase we've staged changes
+			this.deploymentManifest = new DeploymentManifest();
+		}
+
+		this.deploymentPackages = this.deploymentManifest.getDeploymentPackages();
 	}
 
 	/**
@@ -32,6 +40,7 @@ public class DeploymentManager {
 		DeploymentPackage newPackage = new DeploymentPackage(name);
 		newPackage.boxup(); // throws RuntimeException
 		this.deploymentPackages.put(name, newPackage);
+		this.deploymentManifest.setDeploymentPackage(newPackage);
 	}
 
 	public void shipDeploymentPackage(String name) throws RuntimeException {
@@ -52,5 +61,23 @@ public class DeploymentManager {
 
 		this.deploymentProvider.push(targetPackage); // Can throw RuntimeException
 		EscapeRoom._this().logNotice("Shipped package " + targetPackage.getName() + ". Hash: " + targetPackage.getPackageHash());
+	}
+
+	public void pullDeploymentPackage(String name) throws RuntimeException {
+		DeploymentPackage pack = this.deploymentPackages.get(name);
+		if (pack == null) {
+			throw new RuntimeException("Unable to pull requested package " + name + ". Is this package name correct? Is the manifest up to date?");
+		}
+		
+		String downloadUrl = this.deploymentProvider.getConfig().getDeploymentDownloadUrl() + "/" + pack.getName().replaceAll(" ", "_") + ".zip";
+		this.deploymentProvider.pull(downloadUrl, pack.getPackagedZipFile().toString());
+	}
+
+	public void unpackDeploymentPackage(String name) throws RuntimeException {
+		DeploymentPackage pack = this.deploymentPackages.get(name);
+		if (pack == null) {
+			throw new RuntimeException("Unable tp unpack requested package " + name + ". Is this package name correct? Is the manifest up to date?");
+		}
+		pack.unpack();
 	}
 }
