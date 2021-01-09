@@ -1,1 +1,6 @@
 enabled: false
+dev_load_world: true
+name: ""
+
+rules_room_location:
+start_location:

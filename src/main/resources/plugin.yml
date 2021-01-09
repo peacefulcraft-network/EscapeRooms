@@ -11,6 +11,10 @@ depend: []
 softdepend: []
 
 commands:
+  escaperoom:
+    aliases: [ 'es' ]
+    description: Escape room command
+    usage: /<command> to use the example command.
   escaperoomadmin:
     aliases: [ 'esa' ]
     description: Escape room admin command

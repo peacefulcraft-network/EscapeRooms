@@ -74,4 +74,9 @@ public abstract class Configuration {
 			EscapeRoom._this().logSevere("Unable to save configuration file.");
 		  }
 	}
+
+	public static boolean configFileExists(String path) {
+		File file = new File(EscapeRoom._this().getDataFolder(), path);
+		return file.exists();
+	}
 }

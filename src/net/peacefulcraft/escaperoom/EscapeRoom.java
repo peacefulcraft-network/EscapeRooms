@@ -1,17 +1,25 @@
 package net.peacefulcraft.escaperoom;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.md_5.bungee.api.ChatColor;
-import net.peacefulcraft.escaperoom.commands.EscapeRoomAdmin;
+import net.peacefulcraft.escaperoom.commands.EscapeRoomAdminCommand;
 import net.peacefulcraft.escaperoom.commands.EscapeRoomAdminTC;
+import net.peacefulcraft.escaperoom.commands.EscapeRoomCommand;
 import net.peacefulcraft.escaperoom.commands.EscapeRoomTC;
 import net.peacefulcraft.escaperoom.config.ConfigurationManager;
+import net.peacefulcraft.escaperoom.config.EscapeRoomConfiguration;
 import net.peacefulcraft.escaperoom.config.MainConfiguration;
 import net.peacefulcraft.escaperoom.deploy.DeploymentManager;
 import net.peacefulcraft.escaperoom.deploy.DeploymentProvider;
+import net.peacefulcraft.escaperoom.deploy.ServerMode;
+import net.peacefulcraft.escaperoom.gamehandle.EscapeRoomWorld;
+import net.peacefulcraft.escaperoom.gamehandle.GameManager;
+import net.peacefulcraft.escaperoom.gamehandle.world.WorldManager;
 import net.peacefulcraft.escaperoom.listeners.PlayerJoinListener;
 
 public class EscapeRoom extends JavaPlugin {
@@ -27,6 +35,12 @@ public class EscapeRoom extends JavaPlugin {
 	private DeploymentManager deploymentManager;
 		public DeploymentManager getDeploymentManager() { return this.deploymentManager; }
 
+	private GameManager gameManager;
+		public GameManager getGameManager() { return this.gameManager; }
+
+	private WorldManager worldManager;
+		public WorldManager getWorldManager() { return this.worldManager; }
+
   /**
    * Called when Bukkit server enables the plguin
    * For improved reload behavior, use this as if it was the class constructor
@@ -41,13 +55,30 @@ public class EscapeRoom extends JavaPlugin {
 
 	DeploymentProvider httpProvider = new DeploymentProvider(this.configManager.getMainDeploymentProviderConfig());
 	this.deploymentManager = new DeploymentManager(httpProvider);
+
+	this.worldManager = new WorldManager();
+
+	if (this.getConfiguration().getServerMode() == ServerMode.DEVELOPMENT) {
+		Collection<EscapeRoomConfiguration> configs = this.configManager.loadAllEscapeRoomConfigurations();
+		for(EscapeRoomConfiguration config : configs) {
+			this.logNotice("Loaded config for EscapeRoom " + config.getName() + "...");
+			if (config.devLoadWorld()) {
+				this.worldManager.loadWorld(config);
+				this.logNotice("...loaded world.");
+			} else {
+				this.logNotice("...skipping world load becuase it is not set to auto load.");
+			}
+		}
+	} else {
+		// TODO: Deployment provider fetch configs and worlds
+	}
   }
 
 	private void setupCommands() {
-		this.getCommand("escaperoom").setExecutor(new EscapeRoom());
+		this.getCommand("escaperoom").setExecutor(new EscapeRoomCommand());
 		this.getCommand("escaperoom").setTabCompleter(new EscapeRoomTC());
 
-		this.getCommand("escaperoomadmin").setExecutor(new EscapeRoomAdmin());
+		this.getCommand("escaperoomadmin").setExecutor(new EscapeRoomAdminCommand());
 		this.getCommand("escaperoomadmin").setTabCompleter(new EscapeRoomAdminTC());
 	}
 
@@ -55,23 +86,33 @@ public class EscapeRoom extends JavaPlugin {
 		this.getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
 	}
 
-  public void logDebug(String message) {
-	if (this.getConfiguration().isDebugEnabled()) {
-	  this.getServer().getLogger().log(Level.INFO, message);
+	/**
+	 * Loads the EscapeRoomWorld / world with that name, or creates a new one if it does not exist.
+	 * @param name Name of the EscapeRoom to create
+	 * @return The loaded EscapeRoomWorld
+	 */
+	public EscapeRoomWorld loadEscapeRoom(String name) {
+		EscapeRoomConfiguration newEscapeRoomConfig = this.configManager.createNewEscapeRoomConfiguration(name);
+		return this.worldManager.loadWorld(newEscapeRoomConfig);
 	}
-  }
 
-  public void logNotice(String message) {
-	this.getServer().getLogger().log(Level.INFO, message);
-  }
+	public void logDebug(String message) {
+		if (this.getConfiguration().isDebugEnabled()) {
+			this.getServer().getLogger().log(Level.INFO, message);
+		}
+	}
 
-  public void logWarning(String message) {
-	this.getServer().getLogger().log(Level.WARNING, message);
-  }
+	public void logNotice(String message) {
+		this.getServer().getLogger().log(Level.INFO, message);
+	}
 
-  public void logSevere(String message) { 
-	this.getServer().getLogger().log(Level.SEVERE, message);
-  }
+	public void logWarning(String message) {
+		this.getServer().getLogger().log(Level.WARNING, message);
+	}
+
+	public void logSevere(String message) { 
+		this.getServer().getLogger().log(Level.SEVERE, message);
+	}
 
 	/**
 	 * Called whenever Bukkit server disableds the plugin

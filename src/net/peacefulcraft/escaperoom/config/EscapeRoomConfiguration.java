@@ -6,24 +6,25 @@ public class EscapeRoomConfiguration extends Configuration {
 	public EscapeRoomConfiguration(String name) {
 		super("escaperoom.yml", "escaperooms/" + name + ".yml");
 		this.name = name;
+		this.config.set("name", this.name);
+		this.saveConfiguration();
 		this.loadValues();
 	}
 
 	private void loadValues() {
-		this.name = this.config.getString("name");
-		if (this.name == null) {
-			this.config.set("name", this.name);
-			this.saveConfiguration();
-		}
 		this.enabled = this.config.getBoolean("enabled");
-
+		this.devLoadWorld = this.config.getBoolean("dev_load_world");
 		this.rulesRoomLocation = this.config.getLocation("rules_room_location");
 		this.startLocation = this.config.getLocation("start_location");
 	}
 
 	private String name;
 		public String getName() { return name; }
-		public String getWorldName() { return name.replace(" ", "_"); }
+		public String getWorldName() { return name.replaceAll(" ", "_"); }
+
+	private Boolean devLoadWorld;
+		public Boolean devLoadWorld() { return devLoadWorld; }
+		public void setDevLoadWorld(Boolean autoLoad) { this.devLoadWorld = autoLoad; }
 
 	private Boolean enabled;
 		public Boolean isEnabled() { return this.enabled; }

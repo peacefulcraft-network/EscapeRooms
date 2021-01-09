@@ -12,7 +12,7 @@ public class GameId extends Object {
 	private Long startTimeSysMils;
 		public Long getStartTimeMills() { return this.startTimeSysMils; }
 
-	public String getGameId() { return this.owner.toString() + "_" + this.escapeRoomName.replace(" ", "") + "_" + this.startTimeSysMils; }
+	public String getGameId() { return this.owner.toString() + "_" + this.escapeRoomName.replaceAll(" ", "") + "_" + this.startTimeSysMils; }
 
 	public GameId(UUID owner, String escapeRoomName, Long startTimeSysMils) {
 		this.owner = owner;
