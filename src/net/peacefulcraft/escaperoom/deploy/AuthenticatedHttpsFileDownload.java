@@ -6,19 +6,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import net.peacefulcraft.escaperoom.EscapeRoom;
 
 public class AuthenticatedHttpsFileDownload {
 
-	private String username;
-	private String password;
+	private String authString;
 
 	public AuthenticatedHttpsFileDownload(String username, String password) {
-		this.username = username;
-		this.password = password;
+		this.authString = Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
@@ -28,14 +30,17 @@ public class AuthenticatedHttpsFileDownload {
 	 * @return An MD5 hex string for the downloaded file
 	 */
 	public String download(String url_s, String saveLoc) throws RuntimeException {
-		Authenticator.setDefault(new HttpBasicAuthenticator(this.username, this.password));
-
+		EscapeRoom._this().logNotice("Opening connection to file for download " + url_s);
 		try {
 			URL url = new URL(url_s);
+			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+			con.setRequestMethod("GET");
+			con.setRequestProperty("Authorization", "Basic " + this.authString);
+			con.setRequestProperty("User-Agent", "PeacefulCraft Bukkit Server/EscapeRooms");
 			File saveLocFile = new File(saveLoc); 
 			MessageDigest hash = MessageDigest.getInstance("MD5");
 			try (
-				BufferedInputStream in = new BufferedInputStream(url.openStream());
+				BufferedInputStream in = new BufferedInputStream(con.getInputStream());
 				FileOutputStream fout = new FileOutputStream(saveLocFile);
 			) {
 				byte data[] = new byte[8000];
@@ -45,7 +50,9 @@ public class AuthenticatedHttpsFileDownload {
 					hash.update(data, 0, readIn);
 				}
 
-				return DeploymentPackage.MD5DigestToHexString(hash);
+				String hexHash = DeploymentPackage.MD5DigestToHexString(hash); 
+				EscapeRoom._this().logNotice("Downloaded file " + saveLoc + " md5(" + hexHash + ")");
+				return hexHash;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

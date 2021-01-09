@@ -69,7 +69,7 @@ public class DeploymentManager {
 			throw new RuntimeException("Unable to pull requested package " + name + ". Is this package name correct? Is the manifest up to date?");
 		}
 		
-		String downloadUrl = this.deploymentProvider.getConfig().getDeploymentDownloadUrl() + "/" + pack.getName().replaceAll(" ", "_") + ".zip";
+		String downloadUrl = this.deploymentProvider.getConfig().getDeploymentDownloadUrl() + pack.getName().replaceAll(" ", "_") + ".zip";
 		this.deploymentProvider.pull(downloadUrl, pack.getPackagedZipFile().toString());
 	}
 
