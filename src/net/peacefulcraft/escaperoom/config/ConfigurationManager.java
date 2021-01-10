@@ -36,6 +36,12 @@ public class ConfigurationManager {
 			path.mkdirs();
 		}
 
+	/**
+	 * Creates a new EscapeRoomConfiguration file with the given name from the EscapeRoomConfiguration template.
+	 * New configuration is automatically registered with the ConfigurationManager for use accross the plugin.
+	 * @param name Name of the new escape room
+	 * @return Reference to the new EscapeRoomConfiguration object.
+	 */
 	public EscapeRoomConfiguration createNewEscapeRoomConfiguration(String name) throws RuntimeException {
 		if (this.escapeRoomConfigs.containsKey(name)) {
 			throw new RuntimeException("Attempted to configure escape room with name " + name + ", but one already exists");
@@ -46,6 +52,12 @@ public class ConfigurationManager {
 		return newEscapeRoomConfig;
 	}
 
+	/**
+	 * Attempts to load all .yml files in the /escaperooms/ directory as escape room cofnigurations.
+	 * All sucesfully loaded files are registered with the ConfigurationManager for use accross the plugin.
+	 * This will forecefully evict any previous configurations from memory without saving them if there are name colisions.
+	 * @return A collection containing all the EscapeRoomConfigurations that were loaded into memory.
+	 */
 	public Collection<EscapeRoomConfiguration> loadAllEscapeRoomConfigurations() {
 		File esDataDir = new File(EscapeRoom._this().getDataFolder() + "/escaperooms");
 		String[] esConfigFileNames = esDataDir.list(new YAMLFileFilter());
@@ -66,6 +78,12 @@ public class ConfigurationManager {
 		return Collections.unmodifiableCollection(this.escapeRoomConfigs.values());
 	}
 
+	/**
+	 * Loads the escape room cofniguration file which represents the escape room by name.
+	 * The configuration file is also registered with ConfigurationManager to access accross the plugin.
+	 * @param name Name of the escape room which is described by this configuration
+	 * @return Reference to the EscapeRoomConfiguration object that was created.
+	 */
 	public EscapeRoomConfiguration loadEscapeRoomConfiguration(String name) {
 		if (Configuration.configFileExists("escaperooms/" + name + ".yml")) {
 			EscapeRoomConfiguration loadedConfig = new EscapeRoomConfiguration(name);
@@ -76,10 +94,19 @@ public class ConfigurationManager {
 		}
 	}
 
+	/**
+	 * Remove an escape room config from memory. This does not delete the config file from disk.
+	 * This also does not trigger the .save() method on the config file. It is assumed to have already been saved if needed.
+	 * @param name Name of the escape room releated to this configuration file.
+	 */
 	public void unloadEscapeRoomConfiguration(String name) {
 		this.escapeRoomConfigs.remove(name);
 	}
 
+	/**
+	 * Delete the requested EscapeRoomConfiguration file by the name of the EscapeRoom which it represents.
+	 * @param name The name of the related escape room.
+	 */
 	public void deleteEscapeRoomConfig(String name) {
 		EscapeRoomConfiguration targetConfig = this.escapeRoomConfigs.get(name);
 		if (targetConfig == null) {

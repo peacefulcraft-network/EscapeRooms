@@ -43,6 +43,12 @@ public class DeploymentManager {
 		this.deploymentManifest.setDeploymentPackage(newPackage);
 	}
 
+	/**
+	 * Takes an existing DeploymentPackage zip file and pushes it to the deliver network.
+	 * Also uploads the current DeploymentManifest
+	 * @param name The DeploymentPackage to upload
+	 * @throws RuntimeException If the package is not in a deployable state, or there is an error in the upload process.
+	 */
 	public void shipDeploymentPackage(String name) throws RuntimeException {
 		DeploymentPackage targetPackage = this.deploymentPackages.get(name);
 		if (targetPackage == null) {
@@ -63,6 +69,10 @@ public class DeploymentManager {
 		EscapeRoom._this().logNotice("Shipped package " + targetPackage.getName() + ". Hash: " + targetPackage.getPackageHash());
 	}
 
+	/**
+	 * Download the specified package from the DeploymentNetwork
+	 * @param name Name of the package to download
+	 */
 	public void pullDeploymentPackage(String name) throws RuntimeException {
 		DeploymentPackage pack = this.deploymentPackages.get(name);
 		if (pack == null) {
@@ -73,6 +83,10 @@ public class DeploymentManager {
 		this.deploymentProvider.pull(downloadUrl, pack.getPackagedZipFile().toString());
 	}
 
+	/**
+	 * Extract the specified deployment package, placing the included files in their necessary locations
+	 * @param name Name of the DeploymentPackage to extract / install
+	 */
 	public void unpackDeploymentPackage(String name) throws RuntimeException {
 		DeploymentPackage pack = this.deploymentPackages.get(name);
 		if (pack == null) {

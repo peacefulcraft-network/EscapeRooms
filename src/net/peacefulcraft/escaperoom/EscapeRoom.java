@@ -1,9 +1,12 @@
 package net.peacefulcraft.escaperoom;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.md_5.bungee.api.ChatColor;
@@ -15,7 +18,6 @@ import net.peacefulcraft.escaperoom.config.ConfigurationManager;
 import net.peacefulcraft.escaperoom.config.EscapeRoomConfiguration;
 import net.peacefulcraft.escaperoom.config.MainConfiguration;
 import net.peacefulcraft.escaperoom.deploy.DeploymentManager;
-import net.peacefulcraft.escaperoom.deploy.DeploymentPackage;
 import net.peacefulcraft.escaperoom.deploy.DeploymentProvider;
 import net.peacefulcraft.escaperoom.deploy.ServerMode;
 import net.peacefulcraft.escaperoom.gamehandle.EscapeRoomWorld;
@@ -25,7 +27,7 @@ import net.peacefulcraft.escaperoom.listeners.PlayerJoinListener;
 
 public class EscapeRoom extends JavaPlugin {
 
-	public static final String messagingPrefix = ChatColor.GREEN + "[" + ChatColor.BLUE + "PCN" + ChatColor.GREEN + "]" + ChatColor.RESET;
+	public static final String messagingPrefix = ChatColor.GREEN + "[" + ChatColor.BLUE + "PCN" + ChatColor.GREEN + "] " + ChatColor.RESET;
 
 	private static EscapeRoom _this;
 		public static EscapeRoom _this() { return _this; }
@@ -81,7 +83,7 @@ public class EscapeRoom extends JavaPlugin {
 			this.logNotice("Succesfully unpacked package " + name);
 		});
 		
-		Collection<EscapeRoomConfiguration> configs = this.configManager.loadAllEscapeRoomConfigurations();
+		this.configManager.loadAllEscapeRoomConfigurations();
 	}
   }
 
@@ -108,6 +110,17 @@ public class EscapeRoom extends JavaPlugin {
 	}
 
 	/**
+	 * Delete the requested escape room (world & config).
+	 * @param name Name of the escape room to delete
+	 */
+	public void deleteEscapeRoom(String name) throws RuntimeException {
+		this.deploymentManager.getDeploymentManifest().removeDeploymentPackage(name);
+		// Doesn't delete file from webserver. This is a "feature" for now, in the event something is accidently deleted.
+		this.worldManager.deleteWorld(name); // can throw RuntimeException
+		this.configManager.deleteEscapeRoomConfig(name); // can throw RuntimeException
+	}
+
+	/**
 	 * Packages and ships the requested EscapeRoom to the DeploymentNetwork for production usage
 	 * @param name The name of the EsapeRoom to package
 	 */
@@ -118,12 +131,28 @@ public class EscapeRoom extends JavaPlugin {
 		}
 
 		EscapeRoomWorld targetWorld = this.worldManager.getWorld(targetConfig.getName());
+		
+		HashMap<Player, Location> locations = new HashMap<Player, Location>();
 		if (targetWorld != null) {
+			// Save locations so we can teleport players back when we're done
+			targetWorld.getWorld().getPlayers().forEach((p) -> {
+				locations.put(p, p.getLocation());
+			});
+
 			this.worldManager.unloadWorld(targetWorld);
 		}
 
+		// Zip-it & ship-it
 		this.deploymentManager.packageForDeployment(name);
 		this.deploymentManager.shipDeploymentPackage(name);
+		
+		// Load the world again
+		this.worldManager.loadWorld(targetConfig);
+
+		// Teleport the players back
+		locations.forEach((p, l) -> {
+			p.teleport(l);
+		});
 	}
 
 	public void logDebug(String message) {

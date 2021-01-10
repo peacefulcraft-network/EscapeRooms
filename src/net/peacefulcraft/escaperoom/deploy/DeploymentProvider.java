@@ -32,6 +32,12 @@ public class DeploymentProvider {
 		return new DeploymentManifest();
 	}
 
+	/**
+	 * Uploads the provied DeploymentPackage to the deployment network.
+	 * Also uploads the current DeploymentManifest
+	 * @param pack The DeploymentPackage to upload
+	 * @throws RuntimeException When there is an error in the upload process
+	 */
 	public void push(DeploymentPackage pack) throws RuntimeException{
 		try {
 			AuthenticatedHttpsMultipartForm mpf = new AuthenticatedHttpsMultipartForm(this.config.getDeploymentUploadUrl(),

@@ -111,6 +111,12 @@ public class DeploymentPackage {
 		}
 	}
 
+		/**
+		 * Add the targetFile to the zip file being constructed in zipStream.
+		 * @param zipStream The zip file being constructed.
+		 * @param targetFile The File to add to the zip file
+		 * @param hash The MessageDigest tracking this zip operation for hashing purposes
+		 */
 		private void addToZip(ZipOutputStream zipStream, File targetFile, MessageDigest hash) {
 			try {
 				if (targetFile.isDirectory()) { 
@@ -137,6 +143,10 @@ public class DeploymentPackage {
 			}
 		}
 
+	/**
+	 * Unzip this DeploymentPackage
+	 * @throws RuntimeException When something goes wrong in the zip process. (Missing file or ZipStream throws an exception)
+	 */
 	public void unpack() throws RuntimeException {
 		if (!this.packagedZipFile.exists()) {
 			throw new RuntimeException("Unable to unpack package " + this.getName() + ". Has the package been downloaded yet?");
